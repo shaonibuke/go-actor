@@ -2,7 +2,8 @@ package player
 
 import (
 	"fmt"
-	"main/actor/mail"
+
+	"github.com/shaonibuke/go-actor/actor/mail"
 )
 
 func (p *Player) GetPlayerName(m *mail.Mail) {

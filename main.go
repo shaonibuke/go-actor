@@ -2,12 +2,13 @@ package main
 
 import (
 	"fmt"
-	"main/services/bag"
-	"main/services/player"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
+
+	"github.com/shaonibuke/go-actor/services/bag"
+	"github.com/shaonibuke/go-actor/services/player"
 )
 
 func wait(serverName string) {

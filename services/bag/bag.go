@@ -1,7 +1,7 @@
 package bag
 
 import (
-	"main/actor"
+	"github.com/shaonibuke/go-actor/actor"
 )
 
 type Item struct {

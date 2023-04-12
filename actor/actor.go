@@ -2,8 +2,10 @@ package actor
 
 import (
 	"fmt"
-	"main/actor/base"
-	"main/actor/mail"
+
+	cmap "github.com/orcaman/concurrent-map"
+	"github.com/shaonibuke/go-actor/actor/base"
+	"github.com/shaonibuke/go-actor/actor/mail"
 )
 
 // toServerID 为 "" 时，表示发送给所有的Actor
@@ -23,7 +25,7 @@ type Actor struct {
 	// actorManager Actor所属的ActorManager
 	actorManager *ActorManager
 	// callBacks Actor的回调函数
-	callBacks map[string]CallFn
+	callBacks cmap.ConcurrentMap
 	// nowProcessMail 正在处理的Mail
 	nowProcessMail *mail.Mail
 	// nowReplyID 正在回复的ID ""表示已经不需要回复了
@@ -96,7 +98,8 @@ func (a *Actor) CallMessage(toServiceType, toServerID, msgName string, msg inter
 	default:
 		fmt.Printf("Actor.CallMessage: toAc.MailBox is full\n")
 	}
-	a.callBacks[replyID] = callback
+
+	a.callBacks.Set(replyID, callback)
 }
 
 // ReplyMessage 回复消息
@@ -161,9 +164,12 @@ func (a *Actor) processMessage(m *mail.Mail) {
 			fmt.Print("Actor.ProcessMessage: m.ReplyID is nil\n")
 			return
 		}
-		if callback, ok := a.callBacks[m.ReplyID]; ok {
-			callback(m)
-			delete(a.callBacks, m.ReplyID)
+
+		if callback, ok := a.callBacks.Get(m.ReplyID); ok {
+			fn := callback.(CallFn)
+			fn(m)
+			a.callBacks.Remove(m.ReplyID)
+
 		} else {
 			fmt.Printf("Actor.ProcessMessage: callback is nil, msg:%v\n", m)
 			panic("Actor.ProcessMessage: callback is nil")

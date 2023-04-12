@@ -1,6 +1,6 @@
 package bag
 
-import "main/actor"
+import "github.com/shaonibuke/go-actor/actor"
 
 var bag *Bag
 

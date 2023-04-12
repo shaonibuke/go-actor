@@ -1,9 +1,10 @@
 package player
 
 import (
-	"main/actor/mail"
-	"main/services/bag"
 	"time"
+
+	"github.com/shaonibuke/go-actor/actor/mail"
+	"github.com/shaonibuke/go-actor/services/bag"
 
 	"github.com/gookit/goutil/dump"
 )

@@ -1,6 +1,6 @@
 package player
 
-import "main/actor"
+import "github.com/shaonibuke/go-actor/actor"
 
 var player *Player
 

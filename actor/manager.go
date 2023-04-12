@@ -2,8 +2,10 @@ package actor
 
 import (
 	"fmt"
-	"main/actor/base"
-	"main/actor/mail"
+
+	cmap "github.com/orcaman/concurrent-map"
+	"github.com/shaonibuke/go-actor/actor/base"
+	"github.com/shaonibuke/go-actor/actor/mail"
 )
 
 const (
@@ -24,7 +26,7 @@ func (am *ActorManager) NewActor(serviceType string) *Actor {
 		MailBox:      make(chan *mail.Mail, MAX_MAIL_COUNT),
 		router:       make(map[string]interface{}),
 		actorManager: am,
-		callBacks:    make(map[string]CallFn),
+		callBacks:    cmap.New(),
 	}
 	ac.Run()
 
@@ -43,6 +45,17 @@ func (am *ActorManager) Stop() {
 			a.Stop()
 		}
 	}
+}
+
+// SendMessage 发送消息
+func (am *ActorManager) SendMessage(toServiceType, toServerID, msgName string, msg interface{}) {
+
+	toAc := am.GetActor(toServiceType, toServerID)
+	if toAc == nil {
+		fmt.Printf("ActorManager.SendMessage toAc is nil %s %s %s", toServiceType, toServerID, msgName)
+		return
+	}
+	toAc.SendMessage(toServiceType, toServerID, msgName, msg)
 }
 
 // GetActor 获取Actor

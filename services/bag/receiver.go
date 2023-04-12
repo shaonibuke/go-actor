@@ -2,7 +2,8 @@ package bag
 
 import (
 	"fmt"
-	"main/actor/mail"
+
+	"github.com/shaonibuke/go-actor/actor/mail"
 )
 
 func (b *Bag) AddItem(m *mail.Mail) {
