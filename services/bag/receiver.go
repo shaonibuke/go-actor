@@ -10,7 +10,7 @@ func (b *Bag) AddItem(m *mail.Mail) {
 	b.items = append(b.items, item)
 	b.actor.CallMessage(m.FormServiceType, m.FormID, "GetPlayerName", nil, func(msg *mail.Mail) {
 		name := msg.Msg.(string)
-		log.Debugf("name: :%s\n", name)
+		log.Debugf("name: :%s", name)
 	})
 }
 

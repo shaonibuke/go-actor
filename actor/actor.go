@@ -141,6 +141,12 @@ func (a *Actor) RegisterRouter(msgName string, msgHandler CallFn) {
 // processMessage 处理消息
 func (a *Actor) processMessage(m *mail.Mail) {
 
+	defer func() {
+		if err := recover(); err != nil {
+			log.Errorf("Actor.ProcessMessage: %v", err)
+		}
+	}()
+
 	if m.MsgType == mail.MsgTypeTo {
 		if m.ToID != a.ActorID {
 			log.Errorf("Actor.ProcessMessage: m.ToID != a.ActorID")
@@ -178,15 +184,7 @@ func (a *Actor) processMessage(m *mail.Mail) {
 
 // CheckIsReply 检查是否是回复消息
 func (a *Actor) checkIsReply() {
-	if a.nowReplyID == "" {
-		return
-	}
-	if a.nowReplyID != a.nowProcessMail.ReplyID {
-		return
-	}
 	if a.nowReplyID != "" {
 		panic(fmt.Sprintf(" not reply :%s %s", a.nowProcessMail.MsgName, a.nowReplyID))
-		//a.nowReplyID = ""
-		//a.ReplyMessage(a.nowProcessMail.ToServiceType, a.nowProcessMail.FormID, a.nowProcessMail.ReplyID, nil)
 	}
 }
