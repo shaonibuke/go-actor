@@ -1,8 +1,7 @@
 package actor
 
 import (
-	"fmt"
-
+	"github.com/charmbracelet/log"
 	cmap "github.com/orcaman/concurrent-map"
 	"github.com/shaonibuke/go-actor/actor/base"
 	"github.com/shaonibuke/go-actor/actor/mail"
@@ -52,7 +51,7 @@ func (am *ActorManager) SendMessage(toServiceType, toServerID, msgName string, m
 
 	toAc := am.GetActor(toServiceType, toServerID)
 	if toAc == nil {
-		fmt.Printf("ActorManager.SendMessage toAc is nil %s %s %s", toServiceType, toServerID, msgName)
+		log.Errorf("ActorManager.SendMessage toAc is nil %s %s %s", toServiceType, toServerID, msgName)
 		return
 	}
 	toAc.SendMessage(toServiceType, toServerID, msgName, msg)
@@ -61,14 +60,14 @@ func (am *ActorManager) SendMessage(toServiceType, toServerID, msgName string, m
 // GetActor 获取Actor
 func (am *ActorManager) GetActor(serviceType, serverID string) *Actor {
 	if _, ok := am.Actors[serviceType]; !ok {
-		fmt.Printf("ActorManager.GetActor: serviceType not found %s\n", serviceType)
+		log.Errorf("ActorManager.GetActor: serviceType not found %s\n", serviceType)
 		return nil
 	}
 	if serverID == "" {
 		return am.GetOneActorByType(serviceType)
 	}
 	if _, ok := am.Actors[serviceType][serverID]; !ok {
-		fmt.Printf("ActorManager.GetActor: serverID not found %s %s\n", serviceType, serverID)
+		log.Errorf("ActorManager.GetActor: serverID not found %s %s\n", serviceType, serverID)
 		return nil
 	}
 
@@ -78,7 +77,7 @@ func (am *ActorManager) GetActor(serviceType, serverID string) *Actor {
 // GetActorByType 获取Actor
 func (am *ActorManager) GetActorByType(serviceType string) map[string]*Actor {
 	if _, ok := am.Actors[serviceType]; !ok {
-		fmt.Print("ActorManager.GetActor: serviceType not found\n")
+		log.Errorf("ActorManager.GetActor: serviceType not found\n")
 		return nil
 	}
 	return am.Actors[serviceType]
@@ -86,7 +85,7 @@ func (am *ActorManager) GetActorByType(serviceType string) map[string]*Actor {
 
 func (am *ActorManager) GetOneActorByType(serviceType string) *Actor {
 	if _, ok := am.Actors[serviceType]; !ok {
-		fmt.Print("ActorManager.GetActor: serviceType not found\n")
+		log.Errorf("ActorManager.GetActor: serviceType not found\n")
 		return nil
 	}
 	for _, a := range am.Actors[serviceType] {

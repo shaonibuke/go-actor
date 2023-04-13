@@ -3,6 +3,7 @@ package actor
 import (
 	"fmt"
 
+	"github.com/charmbracelet/log"
 	cmap "github.com/orcaman/concurrent-map"
 	"github.com/shaonibuke/go-actor/actor/base"
 	"github.com/shaonibuke/go-actor/actor/mail"
@@ -38,7 +39,6 @@ func (a *Actor) Run() {
 		for {
 			select {
 			case msg := <-a.MailBox:
-				// dump.P(msg)
 				a.nowProcessMail = msg
 				a.processMessage(msg)
 				a.checkIsReply()
@@ -58,7 +58,7 @@ func (a *Actor) Stop() {
 func (a *Actor) SendMessage(toServiceType, toServerID, msgName string, msg interface{}) {
 	toAc := a.actorManager.GetActor(toServiceType, toServerID)
 	if toAc == nil {
-		fmt.Printf("Actor.SendMessage: toAc is nil\n")
+		log.Errorf("Actor.SendMessage: toAc is nil")
 		return
 	}
 	select {
@@ -72,7 +72,7 @@ func (a *Actor) SendMessage(toServiceType, toServerID, msgName string, msg inter
 		ToServiceType:   toServiceType,
 	}:
 	default:
-		fmt.Printf("Actor.SendMessage: toAc.MailBox is full\n")
+		log.Errorf("Actor.SendMessage: toAc.MailBox is full")
 	}
 }
 
@@ -80,7 +80,7 @@ func (a *Actor) SendMessage(toServiceType, toServerID, msgName string, msg inter
 func (a *Actor) CallMessage(toServiceType, toServerID, msgName string, msg interface{}, callback CallFn) {
 	toAc := a.actorManager.GetActor(toServiceType, toServerID)
 	if toAc == nil {
-		fmt.Printf("Actor.CallMessage: toAc is nil\n")
+		log.Errorf("Actor.CallMessage: toAc is nil")
 		return
 	}
 	replyID := base.GetID()
@@ -96,7 +96,7 @@ func (a *Actor) CallMessage(toServiceType, toServerID, msgName string, msg inter
 		ReplyID:         replyID,
 	}:
 	default:
-		fmt.Printf("Actor.CallMessage: toAc.MailBox is full\n")
+		log.Errorf("Actor.CallMessage: toAc.MailBox is full")
 	}
 
 	a.callBacks.Set(replyID, callback)
@@ -105,18 +105,17 @@ func (a *Actor) CallMessage(toServiceType, toServerID, msgName string, msg inter
 // ReplyMessage 回复消息
 func (a *Actor) ReplyMessage(toServiceType, toServerID, replyID string, msg interface{}) {
 	if replyID == "" {
-		fmt.Print("Actor.ReplyMessage: replyID is nil\n")
+		log.Errorf("Actor.ReplyMessage: replyID is nil")
 		return
 	}
 	if a.nowReplyID != replyID {
-		fmt.Print("Actor.ReplyMessage: a.NowReplyID != replyID\n")
+		log.Errorf("Actor.ReplyMessage: a.NowReplyID != replyID")
 		return
 	}
 	a.nowReplyID = ""
-	//fmt.Printf("ToServiceType:%s, toServerID:%s, replyID:%s, msg:%v\n", ToServiceType, toServerID, replyID, msg)
 	toAc := a.actorManager.GetActor(toServiceType, toServerID)
 	if toAc == nil {
-		fmt.Print("Actor.ReplyMessage: toAc is nil\n")
+		log.Errorf("Actor.ReplyMessage: toAc is nil")
 		return
 	}
 	select {
@@ -130,7 +129,7 @@ func (a *Actor) ReplyMessage(toServiceType, toServerID, replyID string, msg inte
 		ReplyID:         replyID,
 	}:
 	default:
-		fmt.Print("Actor.ReplyMessage: toAc.MailBox is full\n")
+		log.Errorf("Actor.ReplyMessage: toAc.MailBox is full")
 	}
 }
 
@@ -144,14 +143,14 @@ func (a *Actor) processMessage(m *mail.Mail) {
 
 	if m.MsgType == mail.MsgTypeTo {
 		if m.ToID != a.ActorID {
-			fmt.Print("Actor.ProcessMessage: m.ToID != a.ActorID\n")
+			log.Errorf("Actor.ProcessMessage: m.ToID != a.ActorID")
 			return
 		}
 		if m.ReplyID != "" {
 			a.nowReplyID = m.ReplyID
 		}
 		if m.MsgName == "" {
-			fmt.Print("Actor.ProcessMessage: m.MsgName is nil")
+			log.Errorf("Actor.ProcessMessage: m.MsgName is nil")
 			return
 		}
 		if msgHandler, ok := a.router[m.MsgName]; ok {
@@ -161,7 +160,7 @@ func (a *Actor) processMessage(m *mail.Mail) {
 		}
 	} else if m.MsgType == mail.MsgTypeReply {
 		if m.ReplyID == "" {
-			fmt.Print("Actor.ProcessMessage: m.ReplyID is nil\n")
+			log.Errorf("Actor.ProcessMessage: m.ReplyID is nil\n")
 			return
 		}
 
@@ -171,7 +170,7 @@ func (a *Actor) processMessage(m *mail.Mail) {
 			a.callBacks.Remove(m.ReplyID)
 
 		} else {
-			fmt.Printf("Actor.ProcessMessage: callback is nil, msg:%v\n", m)
+			log.Errorf("Actor.ProcessMessage: callback is nil, msg:%v", m)
 			panic("Actor.ProcessMessage: callback is nil")
 		}
 	}

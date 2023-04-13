@@ -1,8 +1,7 @@
 package bag
 
 import (
-	"fmt"
-
+	"github.com/charmbracelet/log"
 	"github.com/shaonibuke/go-actor/actor/mail"
 )
 
@@ -11,7 +10,7 @@ func (b *Bag) AddItem(m *mail.Mail) {
 	b.items = append(b.items, item)
 	b.actor.CallMessage(m.FormServiceType, m.FormID, "GetPlayerName", nil, func(msg *mail.Mail) {
 		name := msg.Msg.(string)
-		fmt.Printf("name: :%s\n", name)
+		log.Debugf("name: :%s\n", name)
 	})
 }
 

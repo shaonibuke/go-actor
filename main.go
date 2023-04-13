@@ -7,6 +7,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/charmbracelet/log"
 	"github.com/shaonibuke/go-actor/services/bag"
 	"github.com/shaonibuke/go-actor/services/player"
 )
@@ -15,10 +16,11 @@ func wait(serverName string) {
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 	s := <-c
-	fmt.Printf("server [%s] exit ------- signal:[%v]", serverName, s)
+	log.Debugf("server [%s] exit ------- signal:[%v]", serverName, s)
 }
 
 func main() {
+	log.Debug("start	............")
 	player.GetPlayer().GetItem("1")
 	player.GetPlayer().GetItem("2")
 	//player.GetPlayer().AddItem(bag.Item{ID: "1", Price: 1})
@@ -40,7 +42,7 @@ func main() {
 	time.Sleep(time.Second * 2)
 	player.GetPlayer().GetItem("199")
 
-	print("over	............")
+	log.Debug("over	............")
 
 	wait("")
 }
