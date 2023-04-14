@@ -14,32 +14,32 @@ const (
 // ActorManager 管理Actor
 type ActorManager struct {
 	// Actors Actor的集合
-	Actors map[string]map[string]*Actor // ActorType -> ActorID -> Actor
+	actors map[string]map[string]*Actor // ActorType -> ActorID -> Actor
 }
 
 func (am *ActorManager) NewActor(serviceType string) *Actor {
 	ac := &Actor{
 		ActorID:      base.GetID(),
 		ActorType:    serviceType,
-		StopChan:     make(chan bool),
-		MailBox:      make(chan *mail.Mail, MAX_MAIL_COUNT),
+		stopChan:     make(chan bool),
+		mailBox:      make(chan *mail.Mail, MAX_MAIL_COUNT),
 		router:       make(map[string]interface{}),
 		actorManager: am,
 		callBacks:    cmap.New(),
 	}
 	ac.Run()
 
-	if _, ok := am.Actors[serviceType]; !ok {
-		am.Actors[serviceType] = make(map[string]*Actor)
+	if _, ok := am.actors[serviceType]; !ok {
+		am.actors[serviceType] = make(map[string]*Actor)
 	}
-	am.Actors[serviceType][ac.ActorID] = ac
+	am.actors[serviceType][ac.ActorID] = ac
 
 	return ac
 }
 
 // Stop 停止ActorManager 停止需要仔细处理
 func (am *ActorManager) Stop() {
-	for _, ac := range am.Actors {
+	for _, ac := range am.actors {
 		for _, a := range ac {
 			a.Stop()
 		}
@@ -59,36 +59,36 @@ func (am *ActorManager) SendMessage(toServiceType, toServerID, msgName string, m
 
 // GetActor 获取Actor
 func (am *ActorManager) GetActor(serviceType, serverID string) *Actor {
-	if _, ok := am.Actors[serviceType]; !ok {
+	if _, ok := am.actors[serviceType]; !ok {
 		log.Errorf("ActorManager.GetActor: serviceType not found %s", serviceType)
 		return nil
 	}
 	if serverID == "" {
 		return am.GetOneActorByType(serviceType)
 	}
-	if _, ok := am.Actors[serviceType][serverID]; !ok {
+	if _, ok := am.actors[serviceType][serverID]; !ok {
 		log.Errorf("ActorManager.GetActor: serverID not found %s %s", serviceType, serverID)
 		return nil
 	}
 
-	return am.Actors[serviceType][serverID]
+	return am.actors[serviceType][serverID]
 }
 
 // GetActorByType 获取Actor
 func (am *ActorManager) GetActorByType(serviceType string) map[string]*Actor {
-	if _, ok := am.Actors[serviceType]; !ok {
+	if _, ok := am.actors[serviceType]; !ok {
 		log.Errorf("ActorManager.GetActor: serviceType not found")
 		return nil
 	}
-	return am.Actors[serviceType]
+	return am.actors[serviceType]
 }
 
 func (am *ActorManager) GetOneActorByType(serviceType string) *Actor {
-	if _, ok := am.Actors[serviceType]; !ok {
+	if _, ok := am.actors[serviceType]; !ok {
 		log.Errorf("ActorManager.GetActor: serviceType not found")
 		return nil
 	}
-	for _, a := range am.Actors[serviceType] {
+	for _, a := range am.actors[serviceType] {
 		return a
 	}
 	return nil
@@ -97,7 +97,7 @@ func (am *ActorManager) GetOneActorByType(serviceType string) *Actor {
 // GetActorCount 获取Actor数量
 func (am *ActorManager) GetActorCount() int {
 	count := 0
-	for _, ac := range am.Actors {
+	for _, ac := range am.actors {
 		count += len(ac)
 	}
 	return count
@@ -105,9 +105,9 @@ func (am *ActorManager) GetActorCount() int {
 
 // 汇报Actor邮件数量
 func (am *ActorManager) ReportMailCount() {
-	for _, ac := range am.Actors {
+	for _, ac := range am.actors {
 		for _, a := range ac {
-			log.Infof("ActorManager.ReportMailCount: %s %s %d", a.ActorType, a.ActorID, len(a.MailBox))
+			log.Infof("ActorManager.ReportMailCount: %s %s %d", a.ActorType, a.ActorID, len(a.mailBox))
 		}
 	}
 }
@@ -116,6 +116,6 @@ func (am *ActorManager) ReportMailCount() {
 func newActorManager() *ActorManager {
 	// ...
 	return &ActorManager{
-		Actors: make(map[string]map[string]*Actor),
+		actors: make(map[string]map[string]*Actor),
 	}
 }

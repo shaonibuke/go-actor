@@ -18,9 +18,9 @@ type Actor struct {
 	// ActorType Actor的类型
 	ActorType string
 	// MailBox Actor的邮箱
-	MailBox chan *mail.Mail
+	mailBox chan *mail.Mail
 	// StopChan Actor的停止信号
-	StopChan chan bool
+	stopChan chan bool
 	// router Actor的路由
 	router map[string]interface{}
 	// actorManager Actor所属的ActorManager
@@ -38,11 +38,11 @@ func (a *Actor) Run() {
 	go func() {
 		for {
 			select {
-			case msg := <-a.MailBox:
+			case msg := <-a.mailBox:
 				a.nowProcessMail = msg
 				a.processMessage(msg)
 				a.checkIsReply()
-			case <-a.StopChan:
+			case <-a.stopChan:
 				return
 			}
 		}
@@ -51,7 +51,16 @@ func (a *Actor) Run() {
 
 // Stop 停止Actor
 func (a *Actor) Stop() {
-	a.StopChan <- true
+	a.stopChan <- true
+}
+
+// PushMailBox 压入邮箱
+func (a *Actor) PushMailBox(msg *mail.Mail) {
+	select {
+	case a.mailBox <- msg:
+	default:
+		log.Errorf("Actor.PushMailBox: a.MailBox is full")
+	}
 }
 
 // SendMessage 发送消息
@@ -61,8 +70,7 @@ func (a *Actor) SendMessage(toServiceType, toServerID, msgName string, msg inter
 		log.Errorf("Actor.SendMessage: toAc is nil")
 		return
 	}
-	select {
-	case toAc.MailBox <- &mail.Mail{
+	toAc.PushMailBox(&mail.Mail{
 		Msg:             msg,
 		MsgName:         msgName,
 		MsgType:         mail.MsgTypeTo,
@@ -70,10 +78,8 @@ func (a *Actor) SendMessage(toServiceType, toServerID, msgName string, msg inter
 		FormServiceType: a.ActorType,
 		ToID:            toAc.ActorID,
 		ToServiceType:   toServiceType,
-	}:
-	default:
-		log.Errorf("Actor.SendMessage: toAc.MailBox is full")
-	}
+	})
+
 }
 
 // CallMessage 调用消息
@@ -84,8 +90,8 @@ func (a *Actor) CallMessage(toServiceType, toServerID, msgName string, msg inter
 		return
 	}
 	replyID := base.GetID()
-	select {
-	case toAc.MailBox <- &mail.Mail{
+
+	toAc.PushMailBox(&mail.Mail{
 		Msg:             msg,
 		MsgName:         msgName,
 		MsgType:         mail.MsgTypeTo,
@@ -94,11 +100,7 @@ func (a *Actor) CallMessage(toServiceType, toServerID, msgName string, msg inter
 		ToID:            toAc.ActorID,
 		ToServiceType:   toServiceType,
 		ReplyID:         replyID,
-	}:
-	default:
-		log.Errorf("Actor.CallMessage: toAc.MailBox is full")
-	}
-
+	})
 	a.callBacks.Set(replyID, callback)
 }
 
@@ -118,8 +120,8 @@ func (a *Actor) ReplyMessage(toServiceType, toServerID, replyID string, msg inte
 		log.Errorf("Actor.ReplyMessage: toAc is nil")
 		return
 	}
-	select {
-	case toAc.MailBox <- &mail.Mail{
+
+	toAc.PushMailBox(&mail.Mail{
 		Msg:             msg,
 		MsgType:         mail.MsgTypeReply,
 		FormID:          a.ActorID,
@@ -127,10 +129,8 @@ func (a *Actor) ReplyMessage(toServiceType, toServerID, replyID string, msg inte
 		ToID:            toAc.ActorID,
 		ToServiceType:   toServiceType,
 		ReplyID:         replyID,
-	}:
-	default:
-		log.Errorf("Actor.ReplyMessage: toAc.MailBox is full")
-	}
+	})
+
 }
 
 // RegisterRouter 注册Actor的路由
