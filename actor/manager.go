@@ -60,14 +60,14 @@ func (am *ActorManager) SendMessage(toServiceType, toServerID, msgName string, m
 // GetActor 获取Actor
 func (am *ActorManager) GetActor(serviceType, serverID string) *Actor {
 	if _, ok := am.Actors[serviceType]; !ok {
-		log.Errorf("ActorManager.GetActor: serviceType not found %s\n", serviceType)
+		log.Errorf("ActorManager.GetActor: serviceType not found %s", serviceType)
 		return nil
 	}
 	if serverID == "" {
 		return am.GetOneActorByType(serviceType)
 	}
 	if _, ok := am.Actors[serviceType][serverID]; !ok {
-		log.Errorf("ActorManager.GetActor: serverID not found %s %s\n", serviceType, serverID)
+		log.Errorf("ActorManager.GetActor: serverID not found %s %s", serviceType, serverID)
 		return nil
 	}
 
@@ -77,7 +77,7 @@ func (am *ActorManager) GetActor(serviceType, serverID string) *Actor {
 // GetActorByType 获取Actor
 func (am *ActorManager) GetActorByType(serviceType string) map[string]*Actor {
 	if _, ok := am.Actors[serviceType]; !ok {
-		log.Errorf("ActorManager.GetActor: serviceType not found\n")
+		log.Errorf("ActorManager.GetActor: serviceType not found")
 		return nil
 	}
 	return am.Actors[serviceType]
@@ -85,7 +85,7 @@ func (am *ActorManager) GetActorByType(serviceType string) map[string]*Actor {
 
 func (am *ActorManager) GetOneActorByType(serviceType string) *Actor {
 	if _, ok := am.Actors[serviceType]; !ok {
-		log.Errorf("ActorManager.GetActor: serviceType not found\n")
+		log.Errorf("ActorManager.GetActor: serviceType not found")
 		return nil
 	}
 	for _, a := range am.Actors[serviceType] {
@@ -101,6 +101,15 @@ func (am *ActorManager) GetActorCount() int {
 		count += len(ac)
 	}
 	return count
+}
+
+// 汇报Actor邮件数量
+func (am *ActorManager) ReportMailCount() {
+	for _, ac := range am.Actors {
+		for _, a := range ac {
+			log.Infof("ActorManager.ReportMailCount: %s %s %d", a.ActorType, a.ActorID, len(a.MailBox))
+		}
+	}
 }
 
 // newActorManager 创建一个ActorManager
