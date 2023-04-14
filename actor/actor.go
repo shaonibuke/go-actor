@@ -166,7 +166,7 @@ func (a *Actor) processMessage(m *mail.Mail) {
 		}
 	} else if m.MsgType == mail.MsgTypeReply {
 		if m.ReplyID == "" {
-			log.Errorf("Actor.ProcessMessage: m.ReplyID is nil\n")
+			log.Errorf("Actor.ProcessMessage: m.ReplyID is nil")
 			return
 		}
 
@@ -174,10 +174,8 @@ func (a *Actor) processMessage(m *mail.Mail) {
 			fn := callback.(CallFn)
 			fn(m)
 			a.callBacks.Remove(m.ReplyID)
-
 		} else {
-			log.Errorf("Actor.ProcessMessage: callback is nil, msg:%v", m)
-			panic("Actor.ProcessMessage: callback is nil")
+			panic(fmt.Sprintf("Actor.ProcessMessage: callback is nil, msg:%v", m))
 		}
 	}
 }
