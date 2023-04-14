@@ -8,7 +8,7 @@ func init() {
 	player = &Player{}
 	player.Name = "player"
 	player.actor = actor.GetActorManager().NewActor("player")
-	player.actor.RegisterRouter("GetPlayerName", player.GetPlayerName)
+	player.actor.RegisterRouter("getPlayerName", player.getPlayerName)
 }
 
 func GetPlayer() *Player {

@@ -16,12 +16,12 @@ type Player struct {
 }
 
 func (p *Player) AddItem(item bag.Item) {
-	p.actor.SendMessage("bag", "", "AddItem", item)
+	p.actor.SendMessage("bag", "", "addItem", item)
 }
 
 func (p *Player) GetItem2(id string) {
 	item := bag.Item{ID: id}
-	p.actor.CallMessage("bag", "", "GetItem", item, func(m *mail.Mail) {
+	p.actor.CallMessage("bag", "", "getItem", item, func(m *mail.Mail) {
 		time.Sleep(time.Second * 1)
 		if m.Msg.(bag.Item).ID == "" {
 			// 没找到
@@ -35,5 +35,5 @@ func (p *Player) GetItem2(id string) {
 
 func (p *Player) GetItem(id string) {
 	item := bag.Item{ID: id}
-	p.actor.CallMessage("bag", "", "GetItem", item, p.backGetItem)
+	p.actor.CallMessage("bag", "", "getItem", item, p.backGetItem)
 }

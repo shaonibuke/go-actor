@@ -5,16 +5,16 @@ import (
 	"github.com/shaonibuke/go-actor/actor/mail"
 )
 
-func (b *Bag) AddItem(m *mail.Mail) {
+func (b *Bag) addItem(m *mail.Mail) {
 	item := m.Msg.(Item)
 	b.items = append(b.items, item)
-	b.actor.CallMessage(m.FormServiceType, m.FormID, "GetPlayerName", nil, func(msg *mail.Mail) {
+	b.actor.CallMessage(m.FormServiceType, m.FormID, "getPlayerName", nil, func(msg *mail.Mail) {
 		name := msg.Msg.(string)
 		log.Debugf("name: :%s", name)
 	})
 }
 
-func (b *Bag) GetItem(m *mail.Mail) {
+func (b *Bag) getItem(m *mail.Mail) {
 	item := m.Msg.(Item)
 	for _, v := range b.items {
 		if v.ID == item.ID {

@@ -7,6 +7,6 @@ var bag *Bag
 func init() {
 	bag = &Bag{}
 	bag.actor = actor.GetActorManager().NewActor("bag")
-	bag.actor.RegisterRouter("AddItem", bag.AddItem)
-	bag.actor.RegisterRouter("GetItem", bag.GetItem)
+	bag.actor.RegisterRouter("addItem", bag.addItem)
+	bag.actor.RegisterRouter("getItem", bag.getItem)
 }
