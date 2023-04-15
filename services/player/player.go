@@ -46,6 +46,6 @@ func (p *Player) GetSyncItem(id string) {
 		log.Debug("not find items...", id)
 	} else {
 		// 找到了
-		log.Debug("find items...", ret, id)
+		log.Debugf("find items %v %s", ret.(bag.Item), id)
 	}
 }
