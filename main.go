@@ -36,11 +36,11 @@ func main() {
 	}()
 
 	player.GetPlayer().GetItem("1")
-	player.GetPlayer().GetItem("100")
-	player.GetPlayer().GetItem("99")
-	player.GetPlayer().GetItem("200")
 	time.Sleep(time.Second * 2)
 	player.GetPlayer().GetItem("199")
+	player.GetPlayer().GetSyncItem("2")
+	time.Sleep(time.Second * 6)
+	player.GetPlayer().GetSyncItem("1")
 
 	log.Debug("over	............")
 

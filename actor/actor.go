@@ -2,6 +2,7 @@ package actor
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/charmbracelet/log"
 	cmap "github.com/orcaman/concurrent-map"
@@ -55,7 +56,7 @@ func (a *Actor) Stop() {
 }
 
 // PushMailBox 压入邮箱
-func (a *Actor) PushMailBox(msg *mail.Mail) {
+func (a *Actor) pushMailBox(msg *mail.Mail) {
 	select {
 	case a.mailBox <- msg:
 	default:
@@ -70,7 +71,7 @@ func (a *Actor) SendMessage(toServiceType, toServerID, msgName string, msg inter
 		log.Errorf("Actor.SendMessage: toAc is nil")
 		return
 	}
-	toAc.PushMailBox(&mail.Mail{
+	toAc.pushMailBox(&mail.Mail{
 		Msg:             msg,
 		MsgName:         msgName,
 		MsgType:         mail.MsgTypeTo,
@@ -91,7 +92,7 @@ func (a *Actor) CallMessage(toServiceType, toServerID, msgName string, msg inter
 	}
 	replyID := base.GetID()
 
-	toAc.PushMailBox(&mail.Mail{
+	toAc.pushMailBox(&mail.Mail{
 		Msg:             msg,
 		MsgName:         msgName,
 		MsgType:         mail.MsgTypeTo,
@@ -102,6 +103,42 @@ func (a *Actor) CallMessage(toServiceType, toServerID, msgName string, msg inter
 		ReplyID:         replyID,
 	})
 	a.callBacks.Set(replyID, callback)
+}
+
+// SyncCallMessage 同步调用消息
+func (a *Actor) SyncCallMessage(toServiceType, toServerID, msgName string, msg interface{}) interface{} {
+	toAc := a.actorManager.GetActor(toServiceType, toServerID)
+	if toAc == nil {
+		log.Errorf("Actor.SyncCallMessage: toAc is nil")
+		return nil
+	}
+	replyID := base.GetID()
+
+	mail := &mail.Mail{
+		Msg:             msg,
+		MsgName:         msgName,
+		MsgType:         mail.MsgTypeTo,
+		FormID:          a.ActorID,
+		FormServiceType: a.ActorType,
+		ToID:            toAc.ActorID,
+		ToServiceType:   toServiceType,
+		ReplyID:         replyID,
+		ReplyMsg:        make(chan interface{}),
+	}
+
+	toAc.pushMailBox(mail)
+
+	// 等待回复 超时检查
+	timeTimer := time.NewTimer(time.Second * 5)
+	defer timeTimer.Stop()
+	select {
+	case replyMsg := <-mail.ReplyMsg:
+		return replyMsg
+	case <-timeTimer.C:
+		log.Errorf("Actor.SyncCallMessage: time out")
+		return nil
+	}
+
 }
 
 // ReplyMessage 回复消息
@@ -121,7 +158,14 @@ func (a *Actor) ReplyMessage(toServiceType, toServerID, replyID string, msg inte
 		return
 	}
 
-	toAc.PushMailBox(&mail.Mail{
+	// 同步回复
+	if a.nowProcessMail.ReplyMsg != nil {
+		a.nowProcessMail.ReplyMsg <- msg
+		return
+	}
+
+	// 异步回复
+	toAc.pushMailBox(&mail.Mail{
 		Msg:             msg,
 		MsgType:         mail.MsgTypeReply,
 		FormID:          a.ActorID,

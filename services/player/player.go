@@ -37,3 +37,15 @@ func (p *Player) GetItem(id string) {
 	item := bag.Item{ID: id}
 	p.actor.CallMessage("bag", "", "getItem", item, p.backGetItem)
 }
+
+func (p *Player) GetSyncItem(id string) {
+	item := bag.Item{ID: id}
+	ret := p.actor.SyncCallMessage("bag", "", "getItem", item)
+	if ret.(bag.Item).ID == "" {
+		// 没找到
+		log.Debug("not find items...", id)
+	} else {
+		// 找到了
+		log.Debug("find items...", ret, id)
+	}
+}
