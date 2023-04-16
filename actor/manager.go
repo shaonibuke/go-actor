@@ -26,6 +26,7 @@ func (am *ActorManager) NewActor(serviceType string) *Actor {
 		router:       make(map[string]interface{}),
 		actorManager: am,
 		callBacks:    cmap.New(),
+		sta:          NewStatistics(),
 	}
 	ac.Run()
 
@@ -108,6 +109,15 @@ func (am *ActorManager) ReportMailCount() {
 	for _, ac := range am.actors {
 		for _, a := range ac {
 			log.Infof("ActorManager.ReportMailCount: %s %s %d", a.ActorType, a.ActorID, len(a.mailBox))
+		}
+	}
+}
+
+// 汇报Actor处理消息的平均耗时
+func (am *ActorManager) ReportActorAvgCost() {
+	for _, ac := range am.actors {
+		for _, a := range ac {
+			log.Infof("ActorManager.ReportActorAvgCost: %s %s %v", a.ActorType, a.ActorID, a.sta.GetMsgHandleTimeAvgAllByMsg())
 		}
 	}
 }

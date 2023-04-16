@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/charmbracelet/log"
+	"github.com/shaonibuke/go-actor/actor"
 	"github.com/shaonibuke/go-actor/services/bag"
 	"github.com/shaonibuke/go-actor/services/player"
 )
@@ -41,6 +42,8 @@ func main() {
 	player.GetPlayer().GetSyncItem("2")
 	time.Sleep(time.Second * 6)
 	player.GetPlayer().GetSyncItem("1")
+
+	actor.GetActorManager().ReportActorAvgCost()
 
 	log.Debug("over	............")
 

@@ -32,6 +32,8 @@ type Actor struct {
 	nowProcessMail *mail.Mail
 	// nowReplyID 正在回复的ID ""表示已经不需要回复了
 	nowReplyID string
+	// 统计模块
+	sta *Statistics
 }
 
 // Run 运行Actor
@@ -40,9 +42,18 @@ func (a *Actor) Run() {
 		for {
 			select {
 			case msg := <-a.mailBox:
+
+				startTime := time.Now().UnixMilli()
+
 				a.nowProcessMail = msg
 				a.processMessage(msg)
 				a.checkIsReply()
+
+				// 统计
+				endTime := time.Now().UnixMilli()
+				a.sta.AddMsgHandleTime(msg.MsgName, endTime-startTime)
+				a.sta.AddMsgHandleCount(msg.MsgName)
+
 			case <-a.stopChan:
 				return
 			}
